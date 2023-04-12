@@ -54,7 +54,7 @@ def api():
         d = {"m": True}
         d["coords"] = data[int(request.args['get_for_id'])]["coords"]
         d["is_clicked"] = data[int(request.args['get_for_id'])]["is_clicked"]
-        d["data"] = data[int(request.args['get_for_id'])]["data"]
+        d["data"] = data[int(request.args['get_for_id'])]["data"].copy()
         d["display"] = data[int(request.args['get_for_id'])]["display"]
         data[int(request.args['get_for_id'])]["data"] = []
         return jsonify(d)

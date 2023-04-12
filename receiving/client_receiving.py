@@ -17,6 +17,9 @@ def move(coords, is_clicked, data, display):
     coords[1] = w * coords[0] / display[0]
     for button in data:
         pyautogui.write(button)
+    # pyautogui.moveTo(*coords)
+    if is_clicked:
+        pyautogui.click()
 
 
 def draw_cursor(coords):
@@ -65,7 +68,7 @@ def main():
 
 if __name__ == "__main__":
     while True:
-        #try:
-        main()
-        #except Exception as ex:
-        #    print(f"No connection to server! Error {ex.__class__.__name__}")
+        try:
+            main()
+        except Exception as ex:
+            print(f"No connection to server! Error {ex.__class__.__name__}")

@@ -93,17 +93,19 @@ def get_data():
 
 # Функция для получения изображения
 def get_image(id, name):
-    try:
-        response = requests.get(url + f'/download?id={id}')
-        with open(name, 'wb') as f:
-            f.write(response.content)
-        img = Image.open(name)
-        # изменяем размер
-        new_image = img.resize((1920, 980))
-        new_image.save(name)
-        return True
-    except:
-        return False
+   # try:
+    response = requests.get(url + f'/download?id={id}')
+    with open(name, 'wb') as f:
+        f.write(response.content)
+    f.close()
+    img = Image.open(name)
+    # изменяем размер
+    new_image = img.resize((1920, 980))
+    new_image.save(name)
+    return True
+    #except Exception as ex:
+    #    print(ex.__class__.__name__)
+    #    return False
 
 
 # Функция для отправки координат и состояния мыши
@@ -139,6 +141,7 @@ def main():
     login_active = True
     password_active = False
     time_to_check = False
+    was_checked = False
     while True:
         check_connection()
         for event in pygame.event.get():
@@ -150,20 +153,24 @@ def main():
                     login_active = True
                     password_active = False
                     time_to_check = False
+                    was_checked = False
                 elif password_input_rect.collidepoint(event.pos):
                     login_active = False
                     password_active = True
                     time_to_check = False
+                    was_checked = False
                 else:
                     login_active = False
                     password_active = False
                     time_to_check = True
+                    was_checked = False
             if event.type == pygame.KEYDOWN:
                 if login_active:
                     if event.key == pygame.K_RETURN:
                         password_active = True
                         login_active = False
                         time_to_check = False
+                        was_checked = False
                     elif event.key == pygame.K_BACKSPACE:
                         login = login[:-1]
                     else:
@@ -193,6 +200,7 @@ def main():
             print(data)
             buttons = []
             show_data(data, buttons)
+            image_id = 0
             flag = True
             while flag:
                 check_connection()
@@ -218,7 +226,7 @@ def main():
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
-                        quit()
+                        quit(0)
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         coords = pygame.mouse.get_pos()
                         is_clicked = event.button == 1
@@ -232,7 +240,7 @@ def main():
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                             pygame.quit()
-                            quit()
+                            quit(0)
                         if event.type == pygame.KEYDOWN:
                             data.append(event.unicode)
                             print(event.unicode)
@@ -244,10 +252,13 @@ def main():
                     is_clicked = pygame.mouse.get_pressed()[0]
                     size_display = w, h
                     send_mouse(coords, is_clicked, data, image_id, size_display)
-
                     print("here!", data, coords, is_clicked, size_display)
                 pygame.display.flip()
         elif time_to_check and not check_login(login, password):
+            message_display("Login failed. Please try again.")
+            time_to_check = False
+            was_checked = True
+        elif was_checked:
             message_display("Login failed. Please try again.")
         pygame.display.flip()
 
