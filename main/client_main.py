@@ -93,16 +93,20 @@ def get_data():
 
 # Функция для получения изображения
 def get_image(id, name):
-   # try:
+    #try:
+    print("downloaded")
     response = requests.get(url + f'/download?id={id}')
     with open(name, 'wb') as f:
         f.write(response.content)
     f.close()
+    return True
+    '''
     img = Image.open(name)
     # изменяем размер
     new_image = img.resize((1920, 980))
     new_image.save(name)
     return True
+    '''
     #except Exception as ex:
     #    print(ex.__class__.__name__)
     #    return False
@@ -110,8 +114,12 @@ def get_image(id, name):
 
 # Функция для отправки координат и состояния мыши
 def send_mouse(coords, is_clicked, data, img_id, display):
-    params = {'coords': str(coords), 'is_clicked': is_clicked, "data": data, "display":display}
-    r = requests.post(url + f"/api?moving={img_id}", data=params)
+    print("start_sending")
+    params = {'coords': coords, 'is_clicked': is_clicked, "data": data, "display": display, "id": img_id}
+    print(params)
+    r = requests.post(url + f"/moving", json=params).json()
+    print("end_sending")
+    print("а вот и дата блин", r["data"])
 
 
 def check_connection():
@@ -127,6 +135,9 @@ def show_data(data, buttons):
         button_text = f"{d}. {data[d]}"
         buttons.append(Button(x, y, 150, 50, button_text, d))
         y += 75
+        if y > 800:
+            y = 100
+            x += 200
 
 
 # Функция для запуска проекта
@@ -143,7 +154,6 @@ def main():
     time_to_check = False
     was_checked = False
     while True:
-        check_connection()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -203,7 +213,6 @@ def main():
             image_id = 0
             flag = True
             while flag:
-                check_connection()
                 screen.fill(white)
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -221,7 +230,6 @@ def main():
             if image_id == 0:
                 quit(0)
             while True:
-                check_connection()
                 data = []
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -235,7 +243,6 @@ def main():
                 while not get_image(image_id, name):
                     pass
                 while True:
-                    check_connection()
                     data = []
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
@@ -246,6 +253,7 @@ def main():
                             print(event.unicode)
                     while not get_image(image_id, name):
                         pass
+                    print("image")
                     screen.blit(pygame.image.load(name), (0, 0))
                     pygame.display.flip()
                     coords = pygame.mouse.get_pos()
@@ -253,6 +261,7 @@ def main():
                     size_display = w, h
                     send_mouse(coords, is_clicked, data, image_id, size_display)
                     print("here!", data, coords, is_clicked, size_display)
+                    pygame.display.flip()
                 pygame.display.flip()
         elif time_to_check and not check_login(login, password):
             message_display("Login failed. Please try again.")

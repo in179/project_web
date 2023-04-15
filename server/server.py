@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_file
 import sqlite3
+
 app = Flask(__name__)
 data = {}
 id_counter = 1
@@ -37,18 +38,6 @@ def api():
             data[new_id]["display"] = [1920, 1080]
             returned = {"message": "ID", 'id': new_id}
             return jsonify(returned)
-        elif 'moves' in request.args:
-            # сохраняем передвижение и клики мыши
-            coords = request.args["coords"]
-            is_clicked = bool(int(request.args["is_clicked"]))
-            data_about_buttons = request.args["data"]
-            display = request.args["display"]
-            data[int(request.args['id'])]["coords"] = coords
-            data[int(request.args['id'])]["is_clicked"] = is_clicked
-            data[int(request.args['id'])]["data"] += data_about_buttons
-            data[int(request.args['id'])]["display"] += display
-            returned = {'message': 'Saved'}
-            return jsonify(returned)
     elif 'get_for_id' in request.args and request.args['get_for_id'].isdigit() and int(request.args['get_for_id']) > 0:
         # запрос на передвижение и клики
         d = {"m": True}
@@ -78,13 +67,38 @@ def upload_file():
     return 'Файл успешно загружен'
 
 
+@app.route('/test', methods=['POST'])
+def test():
+    args = request.get_json()
+    return jsonify(args)
+
+
+@app.route('/moving', methods=['POST'])
+def moving():
+    # сохраняем передвижение и клики мыши
+    args = request.get_json(force=True)
+    coords = args["coords"]
+    is_clicked = bool(int(args["is_clicked"]))
+    data_about_buttons = args["data"]
+    display = args["display"]
+    data[int(args['id'])]["coords"] = coords
+    data[int(args['id'])]["is_clicked"] = is_clicked
+    data[int(args['id'])]["data"] += data_about_buttons
+    data[int(args['id'])]["display"] = display
+    returned = {'message': 'Saved', "data": data[int(args['id'])]}
+    return jsonify(returned)
+
+
 @app.route('/download')
 def download_file():
-    path = f'{request.args["id"]}.png'
+    path = f'../{request.args["id"]}.png'
     download_id = request.args["id"]
     while download_id in now_working:
         pass
-    return send_file(path, as_attachment=True)
+    now_working.append(download_id)
+    file = send_file(path, as_attachment=True)
+    now_working.remove(download_id)
+    return file
 
 
 @app.route('/get_data', methods=['GET'])
@@ -98,7 +112,8 @@ def get_data():
 
 @app.route("/check_login", methods=["GET"])
 def check_login():
-    c.execute("SELECT * FROM users WHERE username=? AND password=?", (request.args["username"], request.args["password"]))
+    c.execute("SELECT * FROM users WHERE username=? AND password=?",
+              (request.args["username"], request.args["password"]))
     if c.fetchone() is not None:
         return jsonify({"res": True})
     else:

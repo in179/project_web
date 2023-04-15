@@ -1,7 +1,8 @@
 import requests
 
-url = "http://127.0.0.1:5000"
-rr = url + "/get_data"
-request = requests.get(rr)
+url = "https://dsfsdfdsf.pythonanywhere.com"
+rr = url + "/test"
+data = {"l": "text"}
+request = requests.post(rr, json=data)
 print(request)
 print(request.json())
