@@ -30,23 +30,19 @@ def api():
             # регистрируем пользователя
             new_id = id_counter
             id_counter += 1
-            data[new_id] = {}
-            data[new_id]["os"] = request.args['os']
-            data[new_id]["coords"] = (100, 100)
-            data[new_id]["is_clicked"] = False
-            data[new_id]["data"] = []
-            data[new_id]["display"] = [1920, 1080]
+            data[new_id] = [{}]
+            data[new_id][0]["os"] = request.args['os']
+            data[new_id][0]["coords"] = (100, 100)
+            data[new_id][0]["is_clicked"] = False
+            data[new_id][0]["data"] = []
+            data[new_id][0]["display"] = [1920, 1080]
             returned = {"message": "ID", 'id': new_id}
             return jsonify(returned)
     elif 'get_for_id' in request.args and request.args['get_for_id'].isdigit() and int(request.args['get_for_id']) > 0:
         # запрос на передвижение и клики
-        d = {"m": True}
-        d["coords"] = data[int(request.args['get_for_id'])]["coords"]
-        d["is_clicked"] = data[int(request.args['get_for_id'])]["is_clicked"]
-        d["data"] = data[int(request.args['get_for_id'])]["data"].copy()
-        d["display"] = data[int(request.args['get_for_id'])]["display"]
-        data[int(request.args['get_for_id'])]["data"] = []
-        return jsonify(d)
+        returned = data[int(request.args['get_for_id'])].copy()
+        data[int(request.args['get_for_id'])] = []
+        return jsonify(returned)
     elif "get_image" in request.args:
         with open(f'{request.args["get_image"]}.png', 'rb') as f:
             img_data = f.read().decode('utf-8')
@@ -81,11 +77,13 @@ def moving():
     is_clicked = bool(int(args["is_clicked"]))
     data_about_buttons = args["data"]
     display = args["display"]
-    data[int(args['id'])]["coords"] = coords
-    data[int(args['id'])]["is_clicked"] = is_clicked
-    data[int(args['id'])]["data"] += data_about_buttons
-    data[int(args['id'])]["display"] = display
-    returned = {'message': 'Saved', "data": data[int(args['id'])]}
+    now = {}
+    now["coords"] = coords
+    now["is_clicked"] = is_clicked
+    now["data"] += data_about_buttons
+    now["display"] = display
+    data[int(args['id'])].append(now)
+    returned = {'message': 'Saved', "data": data[int(args['id'])][-1]}
     return jsonify(returned)
 
 

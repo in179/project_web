@@ -12,14 +12,19 @@ infoObject = pygame.display.Info()
 w, h = infoObject.current_w, infoObject.current_h
 
 
-def move(coords, is_clicked, data, display):
-    coords[0] = h * coords[0] / display[1]
-    coords[1] = w * coords[0] / display[0]
-    for button in data:
-        pyautogui.write(button)
-    # pyautogui.moveTo(*coords)
-    if is_clicked:
-        pyautogui.click()
+def move(r):
+    for pocket in r:
+        coords = pocket['coords']
+        display = pocket['display']
+        data = pocket['data']
+        is_clicked = pocket["is_clicked"]
+        coords[0] = h * coords[0] / display[1]
+        coords[1] = w * coords[0] / display[0]
+        for button in data:
+            pyautogui.write(button)
+        # pyautogui.moveTo(*coords)
+        if is_clicked:
+            pyautogui.click()
 
 
 def draw_cursor(coords):
@@ -58,12 +63,8 @@ def main():
         print(f"{url + '/api'}?get_for_id={my_id}")
         print(response)
         print(response.json())
-        coords = json.loads(response.content)['coords']
-        is_clicked = json.loads(response.content)['is_clicked']
-        data = json.loads(response.content)['data']
-        display = json.loads(response.content)['display']
         # Вызываем функцию для перемещения курсора
-        move(coords, is_clicked, data, display)
+        move(response.json())
 
 
 if __name__ == "__main__":

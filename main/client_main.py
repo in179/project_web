@@ -1,6 +1,5 @@
 import pygame
 import requests
-import pyautogui
 from PIL import Image
 
 
